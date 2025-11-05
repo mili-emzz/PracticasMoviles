@@ -21,7 +21,7 @@ fun NavManager(){
             DashboardView(navController = navController)
         }
 
-        composable("AddView"){  // 👈 Nueva ruta
+        composable("AddView"){
             AddView(
                 navController = navController
             )
