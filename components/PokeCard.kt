@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -60,10 +61,18 @@ fun PokemonCard(pokemon: PokeModel, onClick: () -> Unit) {
                 contentDescription = pokemon.name,
                 modifier = Modifier.size(100.dp)
             )
-            Text(
-                text = pokemon.name.replaceFirstChar { it.titlecase() },
-                style = MaterialTheme.typography.titleMedium
-            )
+            Row(
+                modifier = Modifier.padding(2.dp) .fillMaxWidth()
+            ) {
+                Text(
+                    text = pokemon.name.replaceFirstChar { it.titlecase() },
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "#${pokemon.id}",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -78,12 +87,6 @@ fun PokemonCard(pokemon: PokeModel, onClick: () -> Unit) {
                 }
             }
 
-            TileHW(
-                height = pokemon.height,
-                weight = pokemon.weight,
-                modifier = Modifier.padding(2.dp)
-            )
-
         }
     }
 }
@@ -96,6 +99,7 @@ fun TileHW(
 ) {
     Card(
         modifier = Modifier.padding(2.dp)
+            .size(width = 100.dp, height = 170.dp)
     ) {
         Row {
             Row {
