@@ -210,6 +210,28 @@ fun SearchView(
                             }
                         }
                     }
+
+                    is PokemonUiState.Error -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Error al buscar",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.Red,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = state.message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = ClrWhite,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
                 }
             }
 
