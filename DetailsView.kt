@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,6 +43,7 @@ import com.emiliagomez.a243700_examenu3_moviles.pokeapi.pokeModels.AbilitySlot
 import com.emiliagomez.a243700_examenu3_moviles.pokeapi.pokeModels.PokeModel
 import com.emiliagomez.a243700_examenu3_moviles.pokeapi.pokeModels.StatSlot
 import com.emiliagomez.a243700_examenu3_moviles.presentation.viewModels.PokeViewModel
+import com.emiliagomez.a243700_examenu3_moviles.presentation.views.components.FavoriteButton
 import com.emiliagomez.a243700_examenu3_moviles.presentation.views.components.TileHW
 import com.emiliagomez.a243700_examenu3_moviles.presentation.views.components.TileName
 import com.emiliagomez.a243700_examenu3_moviles.ui.theme.BackgroundColor
@@ -73,7 +75,10 @@ fun DetailsView(
         ) {
             if (selectedPokemon != null) {
                 selectedPokemon?.let { pokemon ->
-                    PokemonDetails(pokemon = pokemon)
+                    PokemonDetails(
+                        pokemon = pokemon,
+                        viewModel = viewModel
+                    )
                 } ?: run {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -95,7 +100,8 @@ fun DetailsView(
 
 @Composable
 fun PokemonDetails(
-    pokemon: PokeModel
+    pokemon: PokeModel,
+    viewModel: PokeViewModel
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -134,23 +140,37 @@ fun PokemonDetails(
         }
 
         item {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = pokemon.name.replaceFirstChar { it.titlecase() },
-                    modifier = Modifier.padding(2.dp),
-                    style = Typography.displaySmall,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White
-                )
-                TileHW(
-                    height = pokemon.height,
-                    weight = pokemon.weight,
-                    modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = pokemon.name.replaceFirstChar { it.titlecase() },
+                        modifier = Modifier.padding(2.dp),
+                        style = Typography.displaySmall,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White
+                    )
+                    TileHW(
+                        height = pokemon.height,
+                        weight = pokemon.weight,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                FavoriteButton(
+                    pokemon = pokemon,
+                    viewModel = viewModel
                 )
             }
+
         }
 
         item {
