@@ -65,14 +65,13 @@ import com.emiliagomez.a243700_examenu3_moviles.ui.theme.ClrWhite
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchView(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     navController: NavHostController,
     viewModel: PokeViewModel
 ) {
-
     var query by rememberSaveable { mutableStateOf("") }
     var active by rememberSaveable { mutableStateOf(false) }
-    val uiState by viewModel.uiState.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
 
     Scaffold(
         topBar = {
@@ -100,32 +99,38 @@ fun SearchView(
         modifier = Modifier.fillMaxSize(),
         containerColor = BackgroundColor
     ) { innerPadding ->
-
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-
             SearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(16.dp),
                 query = query,
-                onQueryChange = { query = it },
-                onSearch = {
-                    if (it.isNotBlank()) {
-                        viewModel.searchPokemon(it)
-                        navController.navigateToDetails(it)
+                onQueryChange = { newQuery ->
+                    query = newQuery
+                    if (newQuery.length >= 2) {
+                        viewModel.searchPokemonLocal(newQuery)
+                    } else {
+                        viewModel.clearSearch()
                     }
                 },
+                onSearch = {
+                },
                 active = active,
-                onActiveChange = { active = it },
-                placeholder = { Text("Buscar pokemon por nombre") },
+                onActiveChange = { isActive ->
+                    active = isActive
+                    if (!isActive && query.isEmpty()) {
+                        viewModel.clearSearch()
+                    }
+                },
+                placeholder = { Text("Buscar Pokémon...") },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search Icon"
+                        contentDescription = "Buscar"
                     )
                 },
                 trailingIcon = {
@@ -133,158 +138,128 @@ fun SearchView(
                         Icon(
                             modifier = Modifier.clickable {
                                 query = ""
-                                viewModel.loadPokemons()
+                                viewModel.clearSearch()
                             },
                             imageVector = Icons.Default.Clear,
-                            contentDescription = "Limpiar bisqueda"
+                            contentDescription = "Limpiar"
                         )
                     }
                 }
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Busca por nombre exacto",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(BackgroundColor),
-                contentAlignment = Alignment.Center
-            ) {
-                when (val state = uiState) {
-                    is PokemonUiState.Loading -> {
+                if (query.length >= 2) {
+                    if (searchResults.isEmpty()) {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = ClrWhite)
-                        }
-                    }
-
-                    is PokemonUiState.Success -> {
-                        if (state.pokemons.isEmpty()) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = "No se encontraron Pokémon",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = ClrWhite
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Intenta con otro nombre",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = ClrWhite
-                                )
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(vertical = 8.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                items(
-                                    items = state.pokemons,
-                                    key = { it.id }
-                                ) { pokemon ->
-                                    SearchResultCard(
-                                        pokemon = pokemon,
-                                        onClick = {
-                                            viewModel.selectPokemon(pokemon)
-                                            navController.navigateToDetails(pokemon.name)
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    is PokemonUiState.Error -> {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
                             Text(
-                                text = "Error al buscar",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.Red,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = state.message,
+                                text = "No se encontraron Pokémon",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = ClrWhite,
-                                textAlign = TextAlign.Center
+                                color = Color.Gray
                             )
                         }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(vertical = 8.dp)
+                        ) {
+                            items(
+                                items = searchResults,
+                                key = { it.id }
+                            ) { pokemon ->
+                                SearchSuggestionItem(
+                                    pokemon = pokemon,
+                                    onClick = {
+                                        viewModel.selectPokemon(pokemon)
+                                        navController.navigateToDetails(pokemon.name)
+                                        active = false
+                                        query = ""
+                                        viewModel.clearSearch()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Escribe al menos 2 caracteres para buscar",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
-
+            if (!active) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(80.dp),
+                            tint = ClrWhite.copy(alpha = 0.3f)
+                        )
+                        Text(
+                            text = "Busca tu Pokémon favorito",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = ClrWhite.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Toca la barra de búsqueda para empezar",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = ClrWhite.copy(alpha = 0.5f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun SearchResultCard(
+fun SearchSuggestionItem(
     pokemon: PokeModel,
     onClick: () -> Unit
 ) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+            .clickable { onClick() }
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            AsyncImage(
-                model = pokemon.imageUrl,
-                contentDescription = pokemon.name,
-                modifier = Modifier.size(80.dp),
-                contentScale = ContentScale.Fit
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = pokemon.name.replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    pokemon.types.forEach { typeSlot ->
-                        TileName(
-                            typeName = typeSlot.type.name,
-                            modifier = Modifier
-                        )
-                    }
-                }
-            }
-        }
+        AsyncImage(
+            model = pokemon.imageUrl,
+            contentDescription = pokemon.name,
+            modifier = Modifier.size(50.dp),
+            contentScale = ContentScale.Fit
+        )
+
+        Text(
+            text = pokemon.name.replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium
+        )
+
     }
 }
