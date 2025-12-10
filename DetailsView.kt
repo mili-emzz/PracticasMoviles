@@ -1,5 +1,6 @@
 package com.emiliagomez.a243700_examenu3_moviles.presentation.views
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -58,6 +60,11 @@ fun DetailsView(
 ) {
     val selectedPokemon by viewModel.selectedPokemons.collectAsState()
 
+    LaunchedEffect(selectedPokemon) {
+        Log.d("DetailsView", "selectedPokemon: ${selectedPokemon?.name ?: "NULL"}")
+        Log.d("DetailsView", "pokemonName param: $pokemonName")
+    }
+
     Scaffold(
         topBar = {
             SharedTab(
@@ -73,26 +80,21 @@ fun DetailsView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (selectedPokemon != null) {
-                selectedPokemon?.let { pokemon ->
-                    PokemonDetails(
-                        pokemon = pokemon,
-                        viewModel = viewModel
+            selectedPokemon?.let { pokemon ->
+                PokemonDetails(
+                    pokemon = pokemon,
+                    viewModel = viewModel
+                )
+            } ?: run {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No hay Pokémon seleccionado",
+
                     )
-                } ?: run {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No hay Pokémon seleccionado",
-                            style = Typography.titleMedium,
-                            color = Color.White
-                        )
-                    }
                 }
-            } else {
-                "No existe el pokemon"
             }
         }
     }
@@ -133,7 +135,7 @@ fun PokemonDetails(
                 pokemon.types.forEach { typeSlot ->
                     TileName(
                         typeName = typeSlot.type.name,
-                        modifier = Modifier
+                        modifier = Modifier.padding(10.dp)
                     )
                 }
             }
@@ -144,7 +146,7 @@ fun PokemonDetails(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
-            ){
+            ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -159,7 +161,7 @@ fun PokemonDetails(
                     TileHW(
                         height = pokemon.height,
                         weight = pokemon.weight,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth() .padding(10.dp)
                     )
                 }
 
@@ -208,7 +210,8 @@ fun StatsSection(stats: List<StatSlot>) {
 
             stats.forEach { statSlot ->
                 StatBar(
-                    statName = statSlot.stat.name.replace("-", " ").replaceFirstChar { it.uppercase() },
+                    statName = statSlot.stat.name.replace("-", " ")
+                        .replaceFirstChar { it.uppercase() },
                     statValue = statSlot.baseStat
                 )
             }
@@ -283,7 +286,8 @@ fun AbilitiesSection(abilities: List<AbilitySlot>) {
                         tint = if (abilitySlot.isHidden) Color.Gray else MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = abilitySlot.ability.name.replace("-", " ").replaceFirstChar { it.uppercase() },
+                        text = abilitySlot.ability.name.replace("-", " ")
+                            .replaceFirstChar { it.uppercase() },
                         style = Typography.bodyLarge
                     )
                     if (abilitySlot.isHidden) {
