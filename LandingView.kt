@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.emiliagomez.a243700_examenu3_moviles.navigation.Destination
 import com.emiliagomez.a243700_examenu3_moviles.navigation.SharedTab
+import com.emiliagomez.a243700_examenu3_moviles.navigation.navigateToDetails
 import com.emiliagomez.a243700_examenu3_moviles.pokeapi.pokeModels.PokeModel
 import com.emiliagomez.a243700_examenu3_moviles.ui.theme.BackgroundColor
 import com.emiliagomez.a243700_examenu3_moviles.ui.theme.ClrWhite
@@ -124,7 +125,7 @@ fun LandingView(
                 viewModel = viewModel,
                 onPokeClick = { pokemon ->
                     viewModel.selectPokemon(pokemon)
-                    navController.navigate(Destination.DETAILS)
+                    navController.navigateToDetails(pokemon.name)
                 })
         }
     }
